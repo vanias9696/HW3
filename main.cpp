@@ -2,17 +2,25 @@
 
 int main(void)
 {
-	Data Data;
+	Data d1;
+	Data d2;
+	Data d3;
+	Data d4;
 
-	Data.Add("02.05.1995");
-	Data.Add("15-10-2008");
-	Data.Add("1456.12.24");
+	d1.Add("02.12.2005");
+	d2.Add("15-10-2008");
+	d3.Add("1456.12.24");
 
-	//std::cin >> Data;
+	std::cout << "Enter data:";
+	std::cin >> d4;
 
-	std::cout << Data;
-	Data.Change(1, "11.10.1946");
-	std::cout << Data;
+
+	std::cout << "Data 1: " << d1;
+	std::cout << "Data 2: " << d2;
+	std::cout << "Data 3: " << d3;
+	std::cout << "Data 4: " << d4;
+
+	std::cout << "Data 2 - Data 3 :" << d2 - d3 << std::endl;
 
 	return 0;
 }

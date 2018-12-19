@@ -2,173 +2,129 @@
 
 Data::Data()
 {
-	D = NULL;
+	day = 0;
+	month = 0;
+	year = 0;
 }
 
 Data::~Data()
 {
-	dt *tmp;
-	while(D != NULL)
-	{
-		tmp = D->next;
-		delete D;
-		D = tmp;
-	}
-}
 
-int	Data::YMD(string str)
-{
-	if (isdigit(str[0]) && isdigit(str[1]) && isdigit(str[2]) && isdigit(str[3])
-		&& isdigit(str[5]) && isdigit(str[6]) && isdigit(str[8]) && isdigit(str[9]))
-	{
-		if (str[5] > '1' || (str[5] == '1' && str[6] > '2') || (str[5] == '0' &&
-		str[6] == '0') || str[8] > '3' || (str[8] == '3' && str[9] > '1') || (str[8] == '0' && str[9] == '0'))
-		{
-			std::cout << "Error format" << std::endl;
-			return (0);
-		}
-		dt *temp = new dt;
-		temp->year = atoi(str.c_str());
-		temp->month = atoi(str.c_str() + 5);
-		temp->day = atoi(str.c_str() + 8);
-		temp->num = D == 0 ? 1 : (D->num + 1);
-		temp->next = D;
-		D = temp;
-		return(1);
-	}
-	std::cout << "Error format" << std::endl;
-	return (0);
 }
 
 std::ostream& operator << (std::ostream &s, const Data &dat)
 {
-	dt *tmp;
-
-	tmp = dat.D;
-	while(tmp != 0)
-	{
-		s << "Number " << tmp->num << " : " << tmp->day << "." << tmp->month << "." << tmp->year << std::endl;
-		tmp = tmp->next;
-	}
+	s << "Data: " << dat.getDay() << "." << dat.getMonth() << "." << dat.getYear() << std::endl;
 	return s;
 }
-
-
 
 std::istream& operator >> (std::istream &s, Data &dat)
 {
-	dt *temp = new dt;
-	std::cout << "Input year:\n";
-	std::cin >> temp->year;
-	std::cout << "Input month:\n";
-	std::cin >> temp->month;
-	std::cout << "Input day:\n";
-	std::cin >> temp->day;
-	temp->num = dat.D == NULL ? 1 : dat.D->num + 1;
-	temp->next = dat.D;
-	dat.D = temp;
+	string str;
+
+	s >> str;
+	dat.Add(str);
 	return s;
 }
 
-int	Data::DMY(string str)
+long int	Data::operator-(const Data &dat)
 {
-	if (isdigit(str[0]) && isdigit(str[1]) && isdigit(str[3]) && isdigit(str[4])
-		&& isdigit(str[6]) && isdigit(str[7]) && isdigit(str[8]) && isdigit(str[9]))
+	long int y1 = 0;
+	long int y2 = 0;
+
+	if (year > dat.getYear())
 	{
-		if (str[3] > '1' || (str[3] == '1' && str[4] > '2') || (str[3] == '0' &&
-		str[4] == '0') || str[0] > '3' || (str[0] == '3' && str[1] > '1') || (str[0] == '0' && str[1] == '0'))
-		{
-			std::cout << "Error format" << std::endl;
-			return (0);
-		}
-		dt *temp = new dt;
-		temp->day = atoi(str.c_str());
-		temp->month = atoi(str.c_str() + 3);
-		temp->year = atoi(str.c_str() + 6);
-		temp->num = D == 0 ? 1 : (D->num + 1);
-		temp->next = D;
-		D = temp;
-		return(1);
+		for (long int i = dat.getYear(); i != year; ++i)
+			y1 = leap(i) == 1 ? y1 + 366 : y1 + 365;
+		y2 = 0;
 	}
-	std::cout << "Error format" << std::endl;
-	return (0);
+	else
+	{
+		for (long int i = year; i != dat.getYear(); ++i)
+			y2 = leap(i) == 1 ? y2 + 366 : y2 + 365;
+		y1 = 0;
+	}
+	for (int i = 1; i < month; ++i)
+	{
+		if (i == 4 || i == 6 || i == 9 || i == 11)
+			y1 += 30;
+		else if (i == 2)
+			y1 += 28 + leap(year);
+		else
+			y1 += 31;
+	}
+	for (int i = 1; i < dat.getMonth(); ++i)
+	{
+		if (i == 4 || i == 6 || i == 9 || i == 11)
+			y2 += 30;
+		else if (i == 2)
+			y2 += 28 + leap(dat.getYear());
+		else
+			y2 += 31;
+	}
+	y1 += day;
+	y2 += dat.getDay();
+	return (y1 - y2);
 }
 
-int	Data::Add(string str)
+int		leap(long int year)
+{
+	if (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0))
+		return 1;
+	return 0;
+}
+
+int		Data::Check(void)
+{
+	if (month > 12)
+		return (0);
+	if (day > 31)
+		return (0);
+	if (day > 30 && (month == 4 || month == 6 || month == 9 || month == 11))
+		return (0);
+	if (month == 2 && day > 29)
+		return (0);
+	if (month == 2 && day == 29 && year % 400 != 0 && (year % 4 != 0 || year % 100 == 0))
+		return (0);
+	return (1);
+}
+
+void	Data::Add(string str)
 {
 	if (str.length() != 10)
-		;
-	else if ((str[2] == '.' && str[5] == '.') || (str[2] == '-' && str[5] == '-'))
-		return(DMY(str));
-	else if (str[4] == '.' && str[7] == '.')
-		return(YMD(str));
-	std::cout << "Error format" << std::endl;
-	return (0);
-}
-
-int	Data::nYMD(int n, string str)
-{
-	if (isdigit(str[0]) && isdigit(str[1]) && isdigit(str[2]) && isdigit(str[3])
+	{
+		std::cout << "Error format" << std::endl;
+		return;
+	}
+	else if (((str[2] == '.' && str[5] == '.') || (str[2] == '-' && str[5] == '-')) &&
+			isdigit(str[0]) && isdigit(str[1]) && isdigit(str[3]) && isdigit(str[4])
+			&& isdigit(str[6]) && isdigit(str[7]) && isdigit(str[8]) && isdigit(str[9]))
+	{
+		day = atoi(str.c_str());
+		month = atoi(str.c_str() + 3);
+		year = atoi(str.c_str() + 6);
+		if (Check() == 0)
+		{
+			std::cout << "Error format" << std::endl;
+			day = 0;
+			month = 0;
+			year = 0;
+			return ;
+		}
+	}
+	else if (str[4] == '.' && str[7] == '.' && isdigit(str[0]) && isdigit(str[1]) && isdigit(str[2]) && isdigit(str[3])
 		&& isdigit(str[5]) && isdigit(str[6]) && isdigit(str[8]) && isdigit(str[9]))
 	{
-		if (str[5] > '1' || (str[5] == '1' && str[6] > '2') || (str[5] == '0' &&
-		str[6] == '0') || str[8] > '3' || (str[8] == '3' && str[9] > '1') || (str[8] == '0' && str[9] == '0'))
+		year = atoi(str.c_str());
+		month = atoi(str.c_str() + 5);
+		day = atoi(str.c_str() + 8);
+		if (Check() == 0)
 		{
+			day = 0;
+			month = 0;
+			year = 0;
 			std::cout << "Error format" << std::endl;
-			return (0);
+			return ;
 		}
-		if (D->num < n || n < 1)
-		{
-			std::cout << "This number does not exist." << std::endl;
-			return (0);
-		}
-		dt *temp = D;
-		temp->year = atoi(str.c_str());
-		temp->month = atoi(str.c_str() + 5);
-		temp->day = atoi(str.c_str() + 8);
-		return(1);
 	}
-	std::cout << "Error format" << std::endl;
-	return (0);
 }
-
-int	Data::nDMY(int n, string str)
-{
-	if (isdigit(str[0]) && isdigit(str[1]) && isdigit(str[3]) && isdigit(str[4])
-		&& isdigit(str[6]) && isdigit(str[7]) && isdigit(str[8]) && isdigit(str[9]))
-	{
-		if (str[3] > '1' || (str[3] == '1' && str[4] > '2') || (str[3] == '0' &&
-		str[4] == '0') || str[0] > '3' || (str[0] == '3' && str[1] > '1') || (str[0] == '0' && str[1] == '0'))
-		{
-			std::cout << "Error format" << std::endl;
-			return (0);
-		}
-		if (D->num < n || n < 1)
-		{
-			std::cout << "This number does not exist." << std::endl;
-			return (0);
-		}
-		dt *temp = D;
-		while(temp->num != n)
-			temp = temp->next;
-		temp->day = atoi(str.c_str());
-		temp->month = atoi(str.c_str() + 3);
-		temp->year = atoi(str.c_str() + 6);
-		return(1);
-	}
-	std::cout << "Error format" << std::endl;
-	return (0);
-}
-
-int	Data::Change(int num, string str)
-{
-	if (str.length() != 10)
-		;
-	else if ((str[2] == '.' && str[5] == '.') || (str[2] == '-' && str[5] == '-'))
-		return(nDMY(num, str));
-	else if (str[4] == '.' && str[7] == '.')
-		return(nYMD(num, str));
-	std::cout << "Error format" << std::endl;
-	return (0);
-}
-
